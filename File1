@@ -1,1 +1,23 @@
 File one
+
+[trunkinbound1]
+exten => _5678,1,Noop(*****Incoming From GSM Gateway*****);
+same => n,Set(CALLERID(num)=${CALLERID(num):-10});
+same => n,Set(NOW=${EPOCH})
+same => n,Set(__DAY=${STRFTIME(${NOW},,%d)})
+same => n,Set(__MONTH=${STRFTIME(${NOW},,%m)})
+same => n,Set(__YEAR=${STRFTIME(${NOW},,%Y)})
+same => n,Set(__DATETIME=${YEAR}-${MONTH}-${DAY}_${STRFTIME(${NOW},,%H:%M:%S)})
+same => n,Set(__callrecordfilename=${STRFTIME(,,%Y%m%d)}-${STRFTIME(,,%H%M%S)}_${CALLERID(num)}_${EXTEN}_${UNIQUEID})
+same => n,Set(TIMESTAMP=${STRFTIME(,,%Y%m%d-%H%M%S)});
+same => n,SET(_CDID=${EXTEN});
+same => n,Noop(${CALLERID(num)}--------${CALLERID(name)})
+same => n,Noop(${EXTEN})
+same => n,MixMonitor(/var/spool/asterisk/monitor/ARATT/${callrecordfilename}.wav,b);
+same => n,Dial(SIP/2001&SIP/2002);
+;same => n,Dial(SIP/2006);
+exten => h,1,NoOp(${HANGUPCAUSE}--${DIALSTATUS}--${CALLERID(num)}--${DIALEDTIME}--${ANSWEREDTIME}--${UNIQUEID}--${ARG1}--${ARG2}--11--${callrecordfilename})
+exten => h,2,Set(RECFILE=${SHARED(callrecordfilename,${CHANNEL(LINKEDID)})}.wav);K7
+exten => h,3,NoOp(RECFILE=${RECFILE});K7
+exten => h,4,AGI(aratt/aratt_cdrdone_gsm_incoming.php,${HANGUPCAUSE},${DIALSTATUS},${DIALEDPEERNUMBER:-10},${DIALEDTIME},${ANSWEREDTIME},${UNIQUEID},${DIALEDPEERNAME},${CALLERID(num)},${DIALEDPEERNUMBER:-10},${RECFILE})
+same => n,Hangup()
